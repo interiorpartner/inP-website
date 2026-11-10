@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>in.P | Interior Finish</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .works-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 50px;
+      margin-top: 40px;
+    }
+
+    .work-card {
+      width: 100%;
+    }
+
+    .work-card h3 {
+      margin: 20px 0 10px;
+    }
+
+    .work-card p {
+      line-height: 1.7;
+    }
+
+    .work-card-images {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .work-card-images img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin: 0 0 10px;
+    }
+
+    .empty-works {
+      padding: 50px 20px;
+      text-align: center;
+      color: #888;
+    }
+
+    @media (max-width: 600px) {
+      .work-card-images {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="film-header">
+    <a href="index.html" class="logo">in.P</a>
+    <a href="film.html" class="detail-back">FILM</a>
+  </header>
+
+  <main class="detail-page">
+
+    <section class="detail-intro">
+      <p class="eyebrow">INTERIOR FILM WORK</p>
+      <h1>Interior Finish</h1>
+      <p>공간을 완성하는 섬세한 마감의 변화.</p>
+    </section>
+
+    <section class="detail-description">
+      <p class="detail-number">04 / INTERIOR FINISH</p>
+      <h2>실내 마감 인테리어 필름</h2>
+      <p>
+        몰딩과 걸레받이 등 실내 마감 부분을
+        새로운 색상과 질감으로 바꾸어
+        공간 전체의 통일감과 완성도를 높입니다.
+      </p>
+    </section>
+
+    <section class="work-section">
+      <div class="work-heading">
+        <h2>Before & After</h2>
+        <p>시공 전과 시공 후의 변화를 확인해 보세요.</p>
+      </div>
+
+      <div id="worksList" class="works-list">
+        <p class="empty-works">시공 사례를 불러오는 중입니다.</p>
+      </div>
+    </section>
+
+    <section class="detail-info">
+      <p class="detail-number">05 / INFORMATION</p>
+      <h2>Work Information</h2>
+
+      <div class="info-row">
+        <span>시공 부위</span>
+        <span>몰딩 및 걸레받이</span>
+      </div>
+
+      <div class="info-row">
+        <span>시공 방식</span>
+        <span>인테리어 필름 래핑</span>
+      </div>
+
+      <div class="info-row">
+        <span>시공 범위</span>
+        <span>실내 마감 부위별 협의</span>
+      </div>
+    </section>
+
+    <section class="detail-contact">
+      <p>MAKE A CHANGE WITH in.P</p>
+      <h2>공간의 새로운 변화를 시작하세요.</h2>
+      <a href="film.html">다른 시공 부위 보기</a>
+    </section>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://dbrjtwzutsdixssvolae.supabase.co";
+
+    // entrance.html에 입력했던 실제 Publishable Key를 그대로 넣어주세요.
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ixVf_P6QdVK5u6bpxQEKPA_v_4zVNAb";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    function escapeHTML(value) {
+      return String(value || "").replace(/[&<>"']/g, function(char) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        }[char];
+      });
+    }
+
+    async function loadWorks() {
+      const worksList = document.getElementById("worksList");
+
+      const { data, error } = await supabaseClient
+        .from("works")
+        .select("id, title, description, before_image, after_image, created_at")
+        .eq("category", "finish")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("시공 사례 불러오기 오류:", error);
+        worksList.innerHTML =
+          '<p class="empty-works">시공 사례를 불러오지 못했습니다.</p>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        worksList.innerHTML =
+          '<p class="empty-works">아직 등록된 시공 사례가 없습니다.</p>';
+        return;
+      }
+
+      worksList.innerHTML = data.map(work => `
+        <article class="work-card">
+          <div class="work-card-images">
+            <div>
+              <p class="photo-label">BEFORE</p>
+              ${work.before_image
+                ? `<img src="${escapeHTML(work.before_image)}" alt="시공 전 사진">`
+                : '<p>사진 준비 중</p>'}
+            </div>
+
+            <div>
+              <p class="photo-label">AFTER</p>
+              ${work.after_image
+                ? `<img src="${escapeHTML(work.after_image)}" alt="시공 후 사진">`
+                : '<p>사진 준비 중</p>'}
+            </div>
+          </div>
+
+          <h3>${escapeHTML(work.title)}</h3>
+          ${work.description
+            ? `<p>${escapeHTML(work.description)}</p>`
+            : ""}
+        </article>
+      `).join("");
+    }
+
+    loadWorks();
+  </script>
+
+</body>
+</html>

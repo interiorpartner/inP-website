@@ -1,0 +1,484 @@
+
+/* =========================
+   1. 기본 설정
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #ffffff;
+  color: #171717;
+}
+
+
+/* =========================
+   2. 첫 화면
+   index.html
+========================= */
+
+.landing {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.brand {
+  text-align: center;
+}
+
+.brand h1 {
+  font-size: 64px;
+  font-weight: 500;
+  letter-spacing: -3px;
+}
+
+.film-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #777777;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.film-link:hover {
+  color: #111111;
+}
+
+
+/* =========================
+   3. Film 페이지 상단
+========================= */
+
+.film-header {
+  width: 100%;
+  padding: 28px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.logo {
+  color: #171717;
+  font-size: 25px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: -1px;
+}
+
+.film-header span {
+  color: #888888;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+
+/* =========================
+   4. Film 페이지 전체
+========================= */
+
+.photo-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 85px 40px;
+}
+
+.photo-intro {
+  margin-bottom: 65px;
+}
+
+.photo-intro .eyebrow {
+  color: #999999;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+.photo-intro h1 {
+  font-size: 65px;
+  font-weight: 400;
+  margin: 15px 0;
+  letter-spacing: -2px;
+}
+
+.photo-intro p:last-child {
+  color: #888888;
+  font-size: 14px;
+}
+
+
+/* =========================
+   5. 사진 영역 제목
+========================= */
+
+.room-heading {
+  margin-bottom: 25px;
+}
+
+.room-heading h2 {
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.room-heading p {
+  color: #999999;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+
+/* =========================
+   6. 아파트 사진
+========================= */
+
+.room-photo {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #e8e5df;
+}
+
+.room-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+
+/* =========================
+   7. 사진 위 클릭 버튼
+========================= */
+
+.hotspot {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(20, 20, 20, 0.18);
+
+  cursor: pointer;
+  transition: background 0.25s, border 0.25s;
+}
+
+.hotspot:hover,
+.hotspot.active {
+  background: rgba(20, 20, 20, 0.55);
+  border: 1px solid #ffffff;
+}
+
+.hotspot span {
+  display: inline-block;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-size: 13px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-shadow: 0 1px 5px #333333;
+}
+
+
+/* =========================
+   8. 시공 부위별 위치
+   사진에 맞춰 나중에 조정 가능
+========================= */
+
+.hotspot.entrance {
+  left: 6%;
+  top: 45%;
+  width: 5%;
+  height: 5%;
+}
+
+.hotspot.kitchen {
+  left: 52%;
+  top: 52%;
+  width: 5%;
+  height: 5%;
+}
+
+.hotspot.door {
+  left: 39%;
+  top: 45%;
+  width: 5%;
+  height: 5%;
+}
+
+.hotspot.finish {
+  left: 28%;
+  bottom: 83%;
+  width: 5%;
+  height: 5%;
+}
+
+.hotspot.window {
+  right: 17%;
+  top: 45%;
+  width: 5%;
+  height: 5%;
+}
+
+.hotspot.furniture {
+  left: 22%;
+  top: 52%;
+  width: 5%;
+  height: 5%;
+}
+
+
+/* =========================
+   9. 선택한 시공 정보
+========================= */
+
+.selected-space {
+  margin-top: 35px;
+  padding: 35px 20px;
+  text-align: center;
+  background: #f8f8f8;
+}
+
+.selected-space p {
+  color: #999999;
+  font-size: 10px;
+  letter-spacing: 3px;
+  margin-bottom: 15px;
+}
+
+.selected-space h3 {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.selected-space span {
+  color: #888888;
+  font-size: 13px;
+}
+
+
+/* =========================
+   10. 모바일 화면
+========================= */
+
+@media (max-width: 700px) {
+
+  .film-header {
+    padding: 22px 20px;
+  }
+
+  .photo-page {
+    padding: 55px 20px;
+  }
+
+  .photo-intro {
+    margin-bottom: 45px;
+  }
+
+  .photo-intro h1 {
+    font-size: 48px;
+  }
+
+  .hotspot span {
+    font-size: 9px;
+    padding: 5px 3px;
+    letter-spacing: 0;
+  }
+
+  .selected-space {
+    padding: 28px 15px;
+  }
+
+  .selected-space h3 {
+    font-size: 18px;
+  }
+}
+
+/* =========================
+   상세 시공 페이지
+========================= */
+
+.detail-back {
+  color: #777;
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.detail-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 85px 40px;
+}
+
+.detail-intro {
+  margin-bottom: 100px;
+}
+
+.detail-intro h1 {
+  font-size: 58px;
+  font-weight: 400;
+  margin: 18px 0;
+}
+
+.detail-intro p:last-child {
+  color: #888;
+  font-size: 14px;
+}
+
+.detail-description {
+  max-width: 650px;
+  margin-bottom: 80px;
+}
+
+.detail-number {
+  color: #999;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 18px;
+}
+
+.detail-description h2,
+.detail-info h2 {
+  font-size: 27px;
+  font-weight: 400;
+  margin-bottom: 18px;
+}
+
+.detail-description > p:last-child {
+  color: #888;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.work-section {
+  margin-bottom: 100px;
+}
+
+.work-heading {
+  margin-bottom: 25px;
+}
+
+.work-heading h2 {
+  font-size: 25px;
+  font-weight: 400;
+}
+
+.work-heading p {
+  color: #999;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.work-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.work-image-placeholder {
+  aspect-ratio: 4 / 5;
+  background: #e9e6e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #777;
+}
+
+.work-image-placeholder span {
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.work-image-placeholder p {
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.detail-info {
+  margin-bottom: 100px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 22px 5px;
+  border-bottom: 1px solid #eeeeee;
+  font-size: 14px;
+}
+
+.info-row span:last-child {
+  color: #888;
+}
+
+.detail-contact {
+  padding: 70px 20px;
+  background: #f7f7f7;
+  text-align: center;
+}
+
+.detail-contact > p {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #999;
+}
+
+.detail-contact h2 {
+  font-size: 22px;
+  font-weight: 400;
+  margin: 20px 0 30px;
+}
+
+.detail-contact a {
+  display: inline-block;
+  color: #222;
+  text-decoration: none;
+  border-bottom: 1px solid #222;
+  padding-bottom: 6px;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .detail-page {
+    padding: 55px 20px;
+  }
+
+  .detail-intro h1 {
+    font-size: 42px;
+  }
+
+  .detail-intro {
+    margin-bottom: 70px;
+  }
+
+  .work-images {
+    gap: 8px;
+  }
+
+  .info-row {
+    font-size: 12px;
+  }
+}
+.hotspot {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(20, 20, 20, 0.18);
+
+  cursor: pointer;
+  transition: background 0.25s, border 0.25s;
+}

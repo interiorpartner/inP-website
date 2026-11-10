@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>in.P 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 30px 20px;
+      background: #f5f5f5;
+      color: #222;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .sub { color: #888; margin-bottom: 30px; }
+    .panel {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0 18px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    label { font-size: 14px; font-weight: bold; }
+    button {
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 6px;
+      background: #222;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { opacity: .8; }
+    .delete { background: #b83232; }
+    .edit { background: #666; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .work {
+      display: flex;
+      gap: 18px;
+      border-bottom: 1px solid #eee;
+      padding: 18px 0;
+    }
+    .work img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      background: #eee;
+      border-radius: 6px;
+    }
+    .work-info { flex: 1; min-width: 0; }
+    .work-info p { color: #777; font-size: 14px; }
+    .work-actions { display: flex; gap: 8px; }
+    .hidden { display: none; }
+    #message { margin-top: 15px; font-size: 14px; }
+    .hint { color: #888; font-size: 12px; margin-top: -12px; }
+    @media(max-width:600px) {
+      body { padding: 20px 12px; }
+      .panel { padding: 18px; }
+      .work { flex-wrap: wrap; }
+      .work-info { width: calc(100% - 130px); }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>in.P</h1>
+  <p class="sub">관리자 페이지</p>
+
+  <!-- 로그인 -->
+  <section id="loginPanel" class="panel">
+    <h2>관리자 로그인</h2>
+
+    <label>이메일</label>
+    <input type="email" id="email" placeholder="관리자 이메일">
+
+    <label>비밀번호</label>
+    <input type="password" id="password" placeholder="비밀번호">
+
+    <button id="loginBtn">로그인</button>
+    <p id="loginMessage"></p>
+  </section>
+
+  <!-- 관리자 화면 -->
+  <section id="dashboard" class="hidden">
+
+    <div class="top">
+      <h2>시공 사례 관리</h2>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+
+    <!-- 게시물 등록 -->
+    <div class="panel">
+      <h2 id="formTitle">새 시공 사례 등록</h2>
+
+      <form id="workForm">
+
+        <label>시공 분야</label>
+        <select id="category" required>
+          <option value="">분야 선택</option>
+          <option value="entrance">현관문</option>
+          <option value="kitchen">싱크대</option>
+          <option value="door">방문 및 문틀</option>
+          <option value="finish">실내 마감</option>
+          <option value="window">창호 및 창틀</option>
+          <option value="furniture">가구</option>
+        </select>
+
+        <label>시공 제목</label>
+        <input type="text" id="title" placeholder="예: 아파트 현관문 필름 시공" required>
+
+        <label>시공 설명</label>
+        <textarea id="description" placeholder="시공 내용과 작업 특징을 입력해 주세요."></textarea>
+
+        <label>시공 전 사진</label>
+        <input type="file" id="beforeImage" accept="image/*">
+        <p class="hint">수정할 때 사진을 선택하지 않으면 기존 사진이 유지됩니다.</p>
+
+        <label>시공 후 사진</label>
+        <input type="file" id="afterImage" accept="image/*">
+        <p class="hint">수정할 때 사진을 선택하지 않으면 기존 사진이 유지됩니다.</p>
+
+        <button type="submit" id="submitBtn">시공 사례 게시하기</button>
+        <button type="button" id="cancelEditBtn" class="edit hidden">수정 취소</button>
+
+        <p id="message"></p>
+      </form>
+    </div>
+
+    <!-- 게시물 목록 -->
+    <div class="panel">
+      <h2>등록된 시공 사례</h2>
+      <div id="workList">게시물을 불러오는 중...</div>
+    </div>
+
+  </section>
+</div>
+
+<script>
+  // 기존 Supabase 프로젝트 정보 그대로 사용
+  const SUPABASE_URL = "https://dbrjtwzutsdixssvolae.supabase.co";
+
+  // 기존에 로그인 성공했던 Publishable Key를 넣어 주세요.
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ixVf_P6QdVK5u6bpxQEKPA_v_4zVNAb";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  const loginPanel = document.getElementById("loginPanel");
+  const dashboard = document.getElementById("dashboard");
+  const loginMessage = document.getElementById("loginMessage");
+  const message = document.getElementById("message");
+  const workList = document.getElementById("workList");
+
+  let currentUser = null;
+  let editingId = null;
+
+  const categories = {
+    entrance: "현관문",
+    kitchen: "싱크대",
+    door: "방문 및 문틀",
+    finish: "실내 마감",
+    window: "창호 및 창틀",
+    furniture: "가구"
+  };
+
+  // 로그인
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    loginMessage.textContent = "로그인 중...";
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      loginMessage.textContent = "로그인 실패: " + error.message;
+      return;
+    }
+
+    currentUser = data.user;
+    showDashboard();
+  });
+
+  // 로그아웃
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    dashboard.classList.add("hidden");
+    loginPanel.classList.remove("hidden");
+  });
+
+  // 관리자 화면 표시
+  async function showDashboard() {
+    loginPanel.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+    await loadWorks();
+  }
+
+  // 로그인 상태 확인
+  async function checkLogin() {
+    const { data } = await supabaseClient.auth.getSession();
+
+    if (data.session) {
+      currentUser = data.session.user;
+      showDashboard();
+    }
+  }
+
+  // HTML 문자 처리
+  function escapeHTML(value) {
+    return String(value || "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[char]);
+  }
+
+  // 사진 업로드
+  async function uploadImage(file, type) {
+    if (!file) return null;
+
+    const extension = file.name.split(".").pop().toLowerCase();
+    const filePath =
+      currentUser.id + "/" + Date.now() + "_" +
+      Math.random().toString(36).slice(2) + "_" + type + "." + extension;
+
+    const { error } = await supabaseClient.storage
+      .from("works")
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = supabaseClient.storage
+      .from("works")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  }
+
+  // 게시물 등록 및 수정
+  document.getElementById("workForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!currentUser) {
+      message.textContent = "관리자 로그인이 필요합니다.";
+      return;
+    }
+
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = true;
+    message.textContent = "저장 중입니다. 잠시만 기다려 주세요.";
+
+    try {
+      const category = document.getElementById("category").value;
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+
+      const beforeFile = document.getElementById("beforeImage").files[0];
+      const afterFile = document.getElementById("afterImage").files[0];
+
+      let beforeUrl = null;
+      let afterUrl = null;
+
+      // 수정할 때 기존 사진 주소 유지
+      let existing = null;
+
+      if (editingId) {
+        const { data, error } = await supabaseClient
+          .from("works")
+          .select("*")
+          .eq("id", editingId)
+          .single();
+
+        if (error) throw error;
+        existing = data;
+      }
+
+      if (beforeFile) {
+        beforeUrl = await uploadImage(beforeFile, "before");
+      } else if (existing) {
+        beforeUrl = existing.before_image;
+      }
+
+      if (afterFile) {
+        afterUrl = await uploadImage(afterFile, "after");
+      } else if (existing) {
+        afterUrl = existing.after_image;
+      }
+
+      const workData = {
+        category,
+        title,
+        description,
+        before_image: beforeUrl,
+        after_image: afterUrl
+      };
+
+      let result;
+
+      if (editingId) {
+        result = await supabaseClient
+          .from("works")
+          .update(workData)
+          .eq("id", editingId);
+      } else {
+        result = await supabaseClient
+          .from("works")
+          .insert([workData]);
+      }
+
+      if (result.error) throw result.error;
+
+      message.textContent = "저장 완료!";
+      resetForm();
+      await loadWorks();
+
+    } catch (error) {
+      message.textContent = "오류 발생: " + error.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // 게시물 목록 불러오기
+  async function loadWorks() {
+    workList.textContent = "불러오는 중...";
+
+    const { data, error } = await supabaseClient
+      .from("works")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      workList.textContent = "게시물 불러오기 실패: " + error.message;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      workList.textContent = "아직 등록된 시공 사례가 없습니다.";
+      return;
+    }
+
+    workList.innerHTML = data.map(work => `
+      <div class="work">
+        <img src="${escapeHTML(work.after_image || work.before_image || "")}"
+             alt="시공 사진"
+             onerror="this.style.display='none'">
+
+        <div class="work-info">
+          <strong>${escapeHTML(work.title)}</strong>
+          <p>${escapeHTML(categories[work.category] || work.category)}</p>
+          <p>${escapeHTML(work.description)}</p>
+
+          <div class="work-actions">
+            <button class="edit"
+              data-action="edit"
+              data-id="${escapeHTML(work.id)}">수정</button>
+
+            <button class="delete"
+              data-action="delete"
+              data-id="${escapeHTML(work.id)}">삭제</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // 수정 및 삭제 버튼
+  workList.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-action]");
+    if (!button) return;
+
+    const id = button.dataset.id;
+    const action = button.dataset.action;
+
+    if (action === "edit") {
+      const { data, error } = await supabaseClient
+        .from("works")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      editingId = id;
+      document.getElementById("category").value = data.category;
+      document.getElementById("title").value = data.title;
+      document.getElementById("description").value = data.description || "";
+
+      document.getElementById("formTitle").textContent = "시공 사례 수정";
+      document.getElementById("submitBtn").textContent = "수정 내용 저장";
+      document.getElementById("cancelEditBtn").classList.remove("hidden");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    if (action === "delete") {
+      if (!confirm("이 시공 사례를 삭제할까요?")) return;
+
+      const { error } = await supabaseClient
+        .from("works")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        alert("삭제 실패: " + error.message);
+        return;
+      }
+
+      alert("게시물이 삭제되었습니다.");
+      await loadWorks();
+    }
+  });
+
+  // 수정 취소 및 입력 초기화
+  function resetForm() {
+    editingId = null;
+    document.getElementById("workForm").reset();
+    document.getElementById("formTitle").textContent = "새 시공 사례 등록";
+    document.getElementById("submitBtn").textContent = "시공 사례 게시하기";
+    document.getElementById("cancelEditBtn").classList.add("hidden");
+  }
+
+  document.getElementById("cancelEditBtn").addEventListener("click", resetForm);
+
+  checkLogin();
+</script>
+</body>
+</html>
