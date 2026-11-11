@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>in.P | Gallery</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <header class="film-header">
+    <a href="index.html" class="logo">in.P</a>
+  </header>
+
+  <main class="gallery-page">
+
+    <section class="gallery-heading">
+      <h1>GALLERY</h1>
+      <p>OUR WORKS</p>
+    </section>
+
+    <nav class="gallery-filters">
+      <button class="active" data-category="all">ALL</button>
+      <button data-category="entrance">ENTRANCE</button>
+      <button data-category="kitchen">KITCHEN</button>
+      <button data-category="door">DOOR</button>
+      <button data-category="finish">FINISH</button>
+      <button data-category="window">WINDOW</button>
+      <button data-category="furniture">FURNITURE</button>
+    </nav>
+
+    <section id="galleryList" class="gallery-grid">
+      <p>시공 사례를 불러오는 중입니다.</p>
+    </section>
+
+    <nav id="galleryPagination" class="gallery-pagination"></nav>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
