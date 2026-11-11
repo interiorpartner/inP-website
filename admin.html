@@ -16,10 +16,7 @@
       color: #222;
       font-family: Arial, sans-serif;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    .container { max-width: 900px; margin: 0 auto; }
     h1 { font-size: 28px; margin-bottom: 8px; }
     .sub { color: #888; margin-bottom: 30px; }
     .panel {
@@ -48,8 +45,11 @@
       font-size: 14px;
     }
     button:hover { opacity: .8; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
     .delete { background: #b83232; }
     .edit { background: #666; }
+    .add-pair { background: #444; margin-bottom: 20px; }
+    .remove-pair { background: #b83232; margin-top: 5px; }
     .top {
       display: flex;
       justify-content: space-between;
@@ -75,11 +75,34 @@
     .hidden { display: none; }
     #message { margin-top: 15px; font-size: 14px; }
     .hint { color: #888; font-size: 12px; margin-top: -12px; }
+    .pair-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin: 15px 0;
+      background: #fafafa;
+    }
+    .pair-title { font-weight: bold; margin-bottom: 12px; }
+    .pair-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .pair-preview img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .preview-label { font-size: 12px; color: #777; }
+    .pair-card input { margin-bottom: 10px; }
     @media(max-width:600px) {
       body { padding: 20px 12px; }
       .panel { padding: 18px; }
       .work { flex-wrap: wrap; }
       .work-info { width: calc(100% - 130px); }
+      .pair-preview img { height: 100px; }
     }
   </style>
 </head>
@@ -90,34 +113,26 @@
   <h1>in.P</h1>
   <p class="sub">관리자 페이지</p>
 
-  <!-- 로그인 -->
   <section id="loginPanel" class="panel">
     <h2>관리자 로그인</h2>
-
     <label>이메일</label>
     <input type="email" id="email" placeholder="관리자 이메일">
-
     <label>비밀번호</label>
     <input type="password" id="password" placeholder="비밀번호">
-
     <button id="loginBtn">로그인</button>
     <p id="loginMessage"></p>
   </section>
 
-  <!-- 관리자 화면 -->
   <section id="dashboard" class="hidden">
-
     <div class="top">
       <h2>시공 사례 관리</h2>
       <button id="logoutBtn">로그아웃</button>
     </div>
 
-    <!-- 게시물 등록 -->
     <div class="panel">
       <h2 id="formTitle">새 시공 사례 등록</h2>
 
       <form id="workForm">
-
         <label>시공 분야</label>
         <select id="category" required>
           <option value="">분야 선택</option>
@@ -130,40 +145,43 @@
         </select>
 
         <label>시공 제목</label>
-        <input type="text" id="title" placeholder="예: 아파트 현관문 필름 시공" required>
+        <input type="text" id="title"
+          placeholder="예: 아파트 현관문 필름 시공" required>
 
         <label>시공 설명</label>
-        <textarea id="description" placeholder="시공 내용과 작업 특징을 입력해 주세요."></textarea>
+        <textarea id="description"
+          placeholder="시공 내용과 작업 특징을 입력해 주세요."></textarea>
 
-        <label>시공 전 사진</label>
-        <input type="file" id="beforeImage" accept="image/*">
-        <p class="hint">수정할 때 사진을 선택하지 않으면 기존 사진이 유지됩니다.</p>
+        <h3>Before & After 사진</h3>
+        <p class="hint">
+          시공 전과 시공 후 사진을 같은 번호끼리 한 쌍으로 등록해 주세요.
+          첫 번째 사진 쌍이 목록의 대표 사진으로 사용됩니다.
+        </p>
 
-        <label>시공 후 사진</label>
-        <input type="file" id="afterImage" accept="image/*">
-        <p class="hint">수정할 때 사진을 선택하지 않으면 기존 사진이 유지됩니다.</p>
+        <div id="pairContainer"></div>
+
+        <button type="button" class="add-pair" id="addPairBtn">
+          + 사진 쌍 추가
+        </button>
 
         <button type="submit" id="submitBtn">시공 사례 게시하기</button>
-        <button type="button" id="cancelEditBtn" class="edit hidden">수정 취소</button>
+        <button type="button" id="cancelEditBtn" class="edit hidden">
+          수정 취소
+        </button>
 
         <p id="message"></p>
       </form>
     </div>
 
-    <!-- 게시물 목록 -->
     <div class="panel">
       <h2>등록된 시공 사례</h2>
       <div id="workList">게시물을 불러오는 중...</div>
     </div>
-
   </section>
 </div>
 
 <script>
-  // 기존 Supabase 프로젝트 정보 그대로 사용
   const SUPABASE_URL = "https://dbrjtwzutsdixssvolae.supabase.co";
-
-  // 기존에 로그인 성공했던 Publishable Key를 넣어 주세요.
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ixVf_P6QdVK5u6bpxQEKPA_v_4zVNAb";
 
   const supabaseClient = window.supabase.createClient(
@@ -176,9 +194,11 @@
   const loginMessage = document.getElementById("loginMessage");
   const message = document.getElementById("message");
   const workList = document.getElementById("workList");
+  const pairContainer = document.getElementById("pairContainer");
 
   let currentUser = null;
   let editingId = null;
+  let pairCount = 0;
 
   const categories = {
     entrance: "현관문",
@@ -188,6 +208,83 @@
     window: "창호 및 창틀",
     furniture: "가구"
   };
+
+  function escapeHTML(value) {
+    return String(value || "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[char]);
+  }
+
+  // 사진 쌍 추가
+  function addPair(beforeUrl = "", afterUrl = "") {
+    pairCount++;
+
+    const card = document.createElement("div");
+    card.className = "pair-card";
+    card.dataset.beforeUrl = beforeUrl;
+    card.dataset.afterUrl = afterUrl;
+    card.dataset.removed = "false";
+
+    card.innerHTML = `
+      <div class="pair-title">사진 쌍 ${pairCount}</div>
+
+      ${beforeUrl || afterUrl ? `
+        <div class="pair-preview">
+          <div>
+            <div class="preview-label">BEFORE</div>
+            ${beforeUrl ? `<img src="${escapeHTML(beforeUrl)}" alt="기존 시공 전 사진">` : ""}
+          </div>
+          <div>
+            <div class="preview-label">AFTER</div>
+            ${afterUrl ? `<img src="${escapeHTML(afterUrl)}" alt="기존 시공 후 사진">` : ""}
+          </div>
+        </div>
+      ` : ""}
+
+      <label>시공 전 사진 (BEFORE)</label>
+      <input type="file" class="before-file" accept="image/*">
+
+      <label>시공 후 사진 (AFTER)</label>
+      <input type="file" class="after-file" accept="image/*">
+
+      <button type="button" class="remove-pair">이 사진 쌍 삭제</button>
+    `;
+
+    card.querySelector(".remove-pair").addEventListener("click", () => {
+      card.dataset.removed = "true";
+      card.remove();
+      updatePairTitles();
+    });
+
+    pairContainer.appendChild(card);
+  }
+
+  function updatePairTitles() {
+    [...pairContainer.querySelectorAll(".pair-card")].forEach((card, index) => {
+      card.querySelector(".pair-title").textContent = `사진 쌍 ${index + 1}`;
+    });
+  }
+
+  document.getElementById("addPairBtn").addEventListener("click", () => {
+    addPair();
+  });
+
+  function resetForm() {
+    editingId = null;
+    document.getElementById("workForm").reset();
+    pairContainer.innerHTML = "";
+    pairCount = 0;
+    addPair();
+
+    document.getElementById("formTitle").textContent = "새 시공 사례 등록";
+    document.getElementById("submitBtn").textContent = "시공 사례 게시하기";
+    document.getElementById("cancelEditBtn").classList.add("hidden");
+    message.textContent = "";
+  }
 
   // 로그인
   document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -218,14 +315,12 @@
     loginPanel.classList.remove("hidden");
   });
 
-  // 관리자 화면 표시
   async function showDashboard() {
     loginPanel.classList.add("hidden");
     dashboard.classList.remove("hidden");
     await loadWorks();
   }
 
-  // 로그인 상태 확인
   async function checkLogin() {
     const { data } = await supabaseClient.auth.getSession();
 
@@ -233,17 +328,6 @@
       currentUser = data.session.user;
       showDashboard();
     }
-  }
-
-  // HTML 문자 처리
-  function escapeHTML(value) {
-    return String(value || "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    })[char]);
   }
 
   // 사진 업로드
@@ -286,13 +370,6 @@
       const title = document.getElementById("title").value.trim();
       const description = document.getElementById("description").value.trim();
 
-      const beforeFile = document.getElementById("beforeImage").files[0];
-      const afterFile = document.getElementById("afterImage").files[0];
-
-      let beforeUrl = null;
-      let afterUrl = null;
-
-      // 수정할 때 기존 사진 주소 유지
       let existing = null;
 
       if (editingId) {
@@ -306,24 +383,50 @@
         existing = data;
       }
 
-      if (beforeFile) {
-        beforeUrl = await uploadImage(beforeFile, "before");
-      } else if (existing) {
-        beforeUrl = existing.before_image;
+      const cards = [...pairContainer.querySelectorAll(".pair-card")];
+
+      if (cards.length === 0) {
+        throw new Error("최소 한 쌍의 사진이 필요합니다.");
       }
 
-      if (afterFile) {
-        afterUrl = await uploadImage(afterFile, "after");
-      } else if (existing) {
-        afterUrl = existing.after_image;
+      const galleryPairs = [];
+
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const beforeFile = card.querySelector(".before-file").files[0];
+        const afterFile = card.querySelector(".after-file").files[0];
+
+        let beforeUrl = card.dataset.beforeUrl || "";
+        let afterUrl = card.dataset.afterUrl || "";
+
+        if (Boolean(beforeFile) !== Boolean(afterFile)) {
+          throw new Error(`사진 쌍 ${i + 1}: BEFORE와 AFTER 사진을 모두 선택해 주세요.`);
+        }
+
+        if (beforeFile && afterFile) {
+          beforeUrl = await uploadImage(beforeFile, "before");
+          afterUrl = await uploadImage(afterFile, "after");
+        }
+
+        if (!beforeUrl || !afterUrl) {
+          throw new Error(`사진 쌍 ${i + 1}: BEFORE와 AFTER 사진을 모두 등록해 주세요.`);
+        }
+
+        galleryPairs.push({
+          before: beforeUrl,
+          after: afterUrl
+        });
       }
+
+      const firstPair = galleryPairs[0];
 
       const workData = {
         category,
         title,
         description,
-        before_image: beforeUrl,
-        after_image: afterUrl
+        before_image: firstPair.before,
+        after_image: firstPair.after,
+        gallery_pairs: galleryPairs
       };
 
       let result;
@@ -352,7 +455,7 @@
     }
   });
 
-  // 게시물 목록 불러오기
+  // 게시물 목록
   async function loadWorks() {
     workList.textContent = "불러오는 중...";
 
@@ -381,14 +484,16 @@
           <strong>${escapeHTML(work.title)}</strong>
           <p>${escapeHTML(categories[work.category] || work.category)}</p>
           <p>${escapeHTML(work.description)}</p>
+          <p>사진 쌍: ${
+            Array.isArray(work.gallery_pairs) && work.gallery_pairs.length
+              ? work.gallery_pairs.length
+              : (work.before_image && work.after_image ? 1 : 0)
+          }개</p>
 
           <div class="work-actions">
-            <button class="edit"
-              data-action="edit"
+            <button class="edit" data-action="edit"
               data-id="${escapeHTML(work.id)}">수정</button>
-
-            <button class="delete"
-              data-action="delete"
+            <button class="delete" data-action="delete"
               data-id="${escapeHTML(work.id)}">삭제</button>
           </div>
         </div>
@@ -396,7 +501,7 @@
     `).join("");
   }
 
-  // 수정 및 삭제 버튼
+  // 수정 및 삭제
   workList.addEventListener("click", async (e) => {
     const button = e.target.closest("button[data-action]");
     if (!button) return;
@@ -417,9 +522,31 @@
       }
 
       editingId = id;
+
       document.getElementById("category").value = data.category;
       document.getElementById("title").value = data.title;
       document.getElementById("description").value = data.description || "";
+
+      pairContainer.innerHTML = "";
+      pairCount = 0;
+
+      let pairs = Array.isArray(data.gallery_pairs)
+        ? data.gallery_pairs
+        : [];
+
+      // 예전 게시물은 기존 사진 주소를 사용
+      if (pairs.length === 0 && (data.before_image || data.after_image)) {
+        pairs = [{
+          before: data.before_image || "",
+          after: data.after_image || ""
+        }];
+      }
+
+      pairs.forEach(pair => {
+        addPair(pair.before || "", pair.after || "");
+      });
+
+      if (pairs.length === 0) addPair();
 
       document.getElementById("formTitle").textContent = "시공 사례 수정";
       document.getElementById("submitBtn").textContent = "수정 내용 저장";
@@ -446,17 +573,10 @@
     }
   });
 
-  // 수정 취소 및 입력 초기화
-  function resetForm() {
-    editingId = null;
-    document.getElementById("workForm").reset();
-    document.getElementById("formTitle").textContent = "새 시공 사례 등록";
-    document.getElementById("submitBtn").textContent = "시공 사례 게시하기";
-    document.getElementById("cancelEditBtn").classList.add("hidden");
-  }
+  document.getElementById("cancelEditBtn")
+    .addEventListener("click", resetForm);
 
-  document.getElementById("cancelEditBtn").addEventListener("click", resetForm);
-
+  resetForm();
   checkLogin();
 </script>
 </body>

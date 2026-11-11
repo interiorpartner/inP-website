@@ -10,16 +10,66 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    .works-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 50px;
-      margin-top: 40px;
-    }
+    /* 시공 사례 자동 슬라이드 */
+.detail-page .works-list {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 40px;
+}
 
-    .work-card {
-      width: 100%;
-    }
+.works-track {
+  display: flex;
+  width: 100%;
+  transition: transform 0.7s ease;
+}
+
+.works-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+}
+
+.work-card {
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.work-card:hover {
+  opacity: 0.88;
+  transition: opacity 0.2s ease;
+}
+
+/* 슬라이드 이동 버튼 */
+.slider-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  margin-top: 35px;
+}
+
+.slider-button {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 10px 18px;
+  cursor: pointer;
+  color: #333;
+  font-size: 13px;
+}
+
+.slider-count {
+  color: #888;
+  font-size: 12px;
+}
+
+.work-card:hover {
+  opacity: 0.88;
+  transition: opacity 0.2s ease;
+}
 
     .work-card h3 {
       margin: 20px 0 10px;
@@ -110,7 +160,7 @@
 
       <div class="info-row">
         <span>시공 방식</span>
-        <span>인테리어 필름 래핑</span>
+        <span>인테리어 필름 </span>
       </div>
 
       <div class="info-row">
@@ -150,55 +200,135 @@
       });
     }
 
-    async function loadWorks() {
-      const worksList = document.getElementById("worksList");
+    
+let currentSlideIndex = 0;
+let sliderTimer = null;
 
-      const { data, error } = await supabaseClient
-        .from("works")
-        .select("id, title, description, before_image, after_image, created_at")
-        .eq("category", "door")
-        .order("created_at", { ascending: false });
+async function loadWorks() {
+  const worksList = document.getElementById("worksList");
 
-      if (error) {
-        console.error("시공 사례 불러오기 오류:", error);
-        worksList.innerHTML =
-          '<p class="empty-works">시공 사례를 불러오지 못했습니다.</p>';
-        return;
-      }
+  const { data, error } = await supabaseClient
+    .from("works")
+    .select("id, title, description, before_image, after_image, created_at")
+    .eq("category", "door")
+    .order("created_at", { ascending: false });
 
-      if (!data || data.length === 0) {
-        worksList.innerHTML =
-          '<p class="empty-works">아직 등록된 시공 사례가 없습니다.</p>';
-        return;
-      }
+  if (error) {
+    console.error("시공 사례 불러오기 오류:", error);
+    worksList.innerHTML =
+      '<p class="empty-works">시공 사례를 불러오지 못했습니다.</p>';
+    return;
+  }
 
-      worksList.innerHTML = data.map(work => `
-        <article class="work-card">
-          <div class="work-card-images">
-            <div>
-              <p class="photo-label">BEFORE</p>
-              ${work.before_image
-                ? `<img src="${escapeHTML(work.before_image)}" alt="시공 전 사진">`
-                : '<p>사진 준비 중</p>'}
-            </div>
+  if (!data || data.length === 0) {
+    worksList.innerHTML =
+      '<p class="empty-works">아직 등록된 시공 사례가 없습니다.</p>';
+    return;
+  }
 
-            <div>
-              <p class="photo-label">AFTER</p>
-              ${work.after_image
-                ? `<img src="${escapeHTML(work.after_image)}" alt="시공 후 사진">`
-                : '<p>사진 준비 중</p>'}
-            </div>
-          </div>
+  // 시공 사례를 2개씩 묶기
+  const slides = [];
 
-          <h3>${escapeHTML(work.title)}</h3>
-          ${work.description
-            ? `<p>${escapeHTML(work.description)}</p>`
-            : ""}
-        </article>
-      `).join("");
+  for (let i = 0; i < data.length; i += 2) {
+    slides.push(data.slice(i, i + 2));
+  }
+
+  worksList.innerHTML = `
+    <div class="works-track" id="worksTrack">
+      ${slides.map(slide => `
+        <div class="works-slide">
+          ${slide.map(work => `
+            <article class="work-card"
+              onclick="location.href='work.html?id=${encodeURIComponent(work.id)}'">
+
+              <div class="work-card-images">
+                <div>
+                  <p class="photo-label">BEFORE</p>
+                  ${work.before_image
+                    ? `<img src="${escapeHTML(work.before_image)}" alt="시공 전 사진">`
+                    : '<p>사진 준비 중</p>'}
+                </div>
+
+                <div>
+                  <p class="photo-label">AFTER</p>
+                  ${work.after_image
+                    ? `<img src="${escapeHTML(work.after_image)}" alt="시공 후 사진">`
+                    : '<p>사진 준비 중</p>'}
+                </div>
+              </div>
+
+              <h3>${escapeHTML(work.title)}</h3>
+              ${work.description
+                ? `<p>${escapeHTML(work.description)}</p>`
+                : ""}
+            </article>
+          `).join("")}
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="slider-controls">
+      <button class="slider-button" id="prevSlide">← PREV</button>
+      <span class="slider-count" id="sliderCount"></span>
+      <button class="slider-button" id="nextSlide">NEXT →</button>
+    </div>
+  `;
+
+  currentSlideIndex = 0;
+
+  const track = document.getElementById("worksTrack");
+  const count = document.getElementById("sliderCount");
+  const prev = document.getElementById("prevSlide");
+  const next = document.getElementById("nextSlide");
+
+  function moveSlide(index) {
+    currentSlideIndex = index;
+
+    track.style.transform =
+      `translateX(-${currentSlideIndex * 100}%)`;
+
+    count.textContent =
+      `${currentSlideIndex + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    const nextIndex =
+      (currentSlideIndex + 1) % slides.length;
+
+    moveSlide(nextIndex);
+  }
+
+  function prevSlide() {
+    const prevIndex =
+      (currentSlideIndex - 1 + slides.length) % slides.length;
+
+    moveSlide(prevIndex);
+  }
+
+  prev.addEventListener("click", () => {
+    prevSlide();
+    restartTimer();
+  });
+
+  next.addEventListener("click", () => {
+    nextSlide();
+    restartTimer();
+  });
+
+  function restartTimer() {
+    clearInterval(sliderTimer);
+
+    if (slides.length > 1) {
+      sliderTimer = setInterval(nextSlide, 5000);
     }
+  }
 
-    loadWorks();
+  moveSlide(0);
+  restartTimer();
+}
+
+loadWorks();
+
   </script>
 
 </body>

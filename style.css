@@ -153,43 +153,85 @@ body {
 }
 
 
+
 /* =========================
-   7. 사진 위 클릭 버튼
+   in.P 카테고리 클릭 디자인
 ========================= */
 
 .hotspot {
   position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  background: rgba(20, 20, 20, 0.18);
-
+  display: block;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
   cursor: pointer;
-  transition: background 0.25s, border 0.25s;
+  transition: opacity 0.25s ease;
+  overflow: visible;
 }
 
+/* 포인트 점 */
+.hotspot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+}
+
+/* 대각선 연결선 */
+.hotspot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 21px;
+  height: 1px;
+  background: #fff;
+  transform: rotate(-48deg);
+  transform-origin: left center;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 카테고리 한글 이름 */
+.hotspot span {
+  position: absolute;
+  left: calc(50% + 14px);
+  top: calc(50% - 38px);
+  width: 65px;
+  padding: 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-align: right;
+  white-space: nowrap;
+  text-shadow: 0 1px 5px #333;
+}
+
+/* 수평 연결선 */
+.hotspot span::after {
+  content: "";
+  display: block;
+  width: 65px;
+  height: 1px;
+  margin-top: 3px;
+  background: #fff;
+}
+
+/* 마우스 올렸을 때 */
 .hotspot:hover,
 .hotspot.active {
-  background: rgba(20, 20, 20, 0.55);
-  border: 1px solid #ffffff;
+  opacity: 0.7;
 }
-
-.hotspot span {
-  display: inline-block;
-  padding: 10px 14px;
-  color: #ffffff;
-  font-size: 13px;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  text-shadow: 0 1px 5px #333333;
-}
-
 
 /* =========================
-   8. 시공 부위별 위치
-   사진에 맞춰 나중에 조정 가능
+   시공 부위별 기존 위치 유지
 ========================= */
 
 .hotspot.entrance {
@@ -207,7 +249,7 @@ body {
 }
 
 .hotspot.door {
-  left: 39%;
+  left: 37%;
   top: 45%;
   width: 5%;
   height: 5%;
@@ -378,10 +420,22 @@ body {
   margin-top: 10px;
 }
 
-.work-images {
+.detail-page .work-card-images {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-page .work-card-images > div {
+  min-width: 0;
+}
+
+.detail-page .work-card-images img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #eee;
 }
 
 .work-image-placeholder {
@@ -481,4 +535,339 @@ body {
 
   cursor: pointer;
   transition: background 0.25s, border 0.25s;
+}
+
+/* ==================================
+   in.P 상세 페이지 디자인 개선
+   ================================== */
+
+/* 상세 페이지 기본 */
+body {
+  color: #222;
+}
+
+/* 상세 페이지 전체 제목 */
+.page-title {
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -1.5px;
+  margin-bottom: 18px;
+}
+
+/* 상세 페이지 설명 */
+.page-description {
+  font-size: 15px;
+  line-height: 1.9;
+  color: #777;
+  word-break: keep-all;
+}
+
+/* 시공 사진 영역 */
+.works-container {
+  margin-top: 60px;
+  margin-bottom: 80px;
+}
+
+/* 시공 사진 카드 */
+.work-card {
+  overflow: hidden;
+  border-radius: 4px;
+  background: #fff;
+  margin-bottom: 35px;
+}
+
+/* 시공 사진 */
+.work-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* 시공 제목 */
+.work-card h3 {
+  font-size: 19px;
+  font-weight: 500;
+  margin: 18px 0 10px;
+  letter-spacing: -0.5px;
+}
+
+/* 시공 설명 */
+.work-card p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #777;
+  word-break: keep-all;
+}
+
+/* Before / After */
+.before-after {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* 페이지 하단 여백 */
+footer {
+  margin-top: 80px;
+}
+
+/* ==================================
+   모바일 최적화 기본 설정
+   ================================== */
+
+@media (max-width: 768px) {
+
+  .page-title {
+    font-size: 27px;
+    letter-spacing: -1px;
+  }
+
+  .page-description {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .works-container {
+    margin-top: 35px;
+    margin-bottom: 50px;
+  }
+
+  .work-card {
+    margin-bottom: 25px;
+  }
+
+  .work-card h3 {
+    font-size: 17px;
+  }
+
+  .work-card p {
+    font-size: 13px;
+  }
+
+  .before-after {
+    gap: 8px;
+  }
+
+  footer {
+    margin-top: 50px;
+  }
+
+}
+
+/* ==================================
+   in.P 상세 페이지 실제 구조 개선
+   ================================== */
+
+/* 상세 페이지 전체 */
+.detail-page {
+  max-width: 1160px;
+  padding: 90px 45px;
+}
+
+/* 상단 소개 */
+.detail-intro {
+  margin-bottom: 90px;
+}
+
+.detail-intro .eyebrow {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #999;
+}
+
+.detail-intro h1 {
+  font-size: 56px;
+  letter-spacing: -2px;
+  margin: 20px 0;
+}
+
+/* 시공 설명 */
+.detail-description {
+  max-width: 700px;
+  margin-bottom: 85px;
+}
+
+.detail-description h2,
+.detail-info h2 {
+  letter-spacing: -1px;
+}
+
+/* 시공 사례 */
+.work-section {
+  margin-bottom: 100px;
+}
+
+.work-heading {
+  margin-bottom: 35px;
+}
+
+.work-heading h2 {
+  letter-spacing: -1px;
+}
+
+.detail-page .works-list {
+  gap: 45px 30px;
+  margin-top: 40px;
+}
+
+.detail-page .work-card {
+  min-width: 0;
+}
+
+.detail-page .work-card-images {
+  gap: 12px;
+}
+
+.detail-page .work-card-images img {
+  border-radius: 2px;
+  transition: opacity 0.3s ease;
+}
+
+.detail-page .work-card-images img:hover {
+  opacity: 0.92;
+}
+
+.detail-page .work-card h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 20px;
+  letter-spacing: -0.5px;
+}
+
+.detail-page .work-card > p {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* 시공 정보 */
+.detail-info {
+  max-width: 850px;
+  margin-bottom: 100px;
+}
+
+.detail-info .info-row {
+  padding: 24px 5px;
+}
+
+/* 하단 안내 */
+.detail-contact {
+  padding: 75px 20px;
+}
+
+/* 모바일 */
+@media (max-width: 700px) {
+
+  .detail-page {
+    padding: 55px 20px;
+  }
+
+  .detail-intro {
+    margin-bottom: 65px;
+  }
+
+  .detail-intro h1 {
+    font-size: 38px;
+    letter-spacing: -1.5px;
+  }
+
+  .detail-description {
+    margin-bottom: 60px;
+  }
+
+  .detail-description h2,
+  .detail-info h2 {
+    font-size: 23px;
+  }
+
+  .work-section {
+    margin-bottom: 65px;
+  }
+
+  .work-heading h2 {
+    font-size: 22px;
+  }
+
+  .detail-page .works-list {
+    grid-template-columns: 1fr;
+    gap: 35px;
+    margin-top: 25px;
+  }
+
+  .detail-page .work-card-images {
+    gap: 8px;
+  }
+
+  .detail-page .work-card h3 {
+    font-size: 17px;
+  }
+
+  .detail-info {
+    margin-bottom: 65px;
+  }
+
+  .detail-info .info-row {
+    padding: 18px 3px;
+    font-size: 13px;
+    gap: 15px;
+  }
+
+  .detail-contact {
+    padding: 55px 18px;
+  }
+
+  .detail-contact h2 {
+    font-size: 19px;
+    line-height: 1.6;
+  }
+}
+/* =========================
+   모바일 핫스팟 최적화
+========================= */
+
+/* =========================
+   모바일 전용 핫스팟 디자인
+========================= */
+
+@media (max-width: 600px) {
+
+  /* 대각선 제거 */
+  .hotspot::before {
+    display: none;
+  }
+
+  /* 흰색 포인트 */
+  .hotspot::after {
+    width: 5px;
+    height: 5px;
+  }
+
+  /* 카테고리 라벨 */
+.hotspot span {
+  left: calc(50% + 02px);
+  top: calc(50% - 15px);
+  width: auto;
+
+  padding: 3px 6px;
+
+  color: #000000;
+  background: transparent;
+
+  border: none;
+  border-radius: 0;
+
+  font-size: 7px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+
+  text-align: left;
+  white-space: nowrap;
+  text-shadow: none;
+}
+  /* 수평선 제거 */
+  .hotspot span::after {
+    display: none;
+  }
+
 }
